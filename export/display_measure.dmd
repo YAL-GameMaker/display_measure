@@ -1,0 +1,73 @@
+```set template default.html```
+```set title display_measure cheat sheet```
+```set autoapi ext```
+```gmlapi fnames2```
+```set intro
+This is a "cheat sheet" for "display_measure" extension by YellowAfterlife.  
+The extension can be found on
+[itch.io](https://yellowafterlife.itch.io/gamemaker-display-measure)
+or [GM Marketplace](https://marketplace.yoyogames.com/assets/8517_).  
+Source code can be found on [GitHub](https://github.com/YAL-GameMaker/display_measure)
+```
+#[display_measure_all()->]() {
+	Returns an array of arrays containing information about each display.
+	
+	Information inside sub-arrays is the following, in order: --{
+	-	\[0] .. \[3]: x, y, width, height of the display itself.\
+		Primary display always has x=0,y=0, meaning that displays to the left of it
+		can have negative coordinates.
+	-	\[4] .. \[7]: x, y, width, height of the display's "work area".\
+		That is, the area of the monitor not obscured by the system taskbar
+		or other system-wide docks
+		([MSDN](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-systemparametersinfoa#SPI_GETWORKAREA))
+	-	\[8]: display bit flags from
+		[MONITORINFO](https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-monitorinfo)
+		as of 2023 the only documented flag is
+		`1` for whether the display is the primary one.
+	-	\[9]: The (technical) name of the display.\
+		Usually something like `"\\.\DISPLAY1"`
+	}
+	
+	If the DLL fails to load (probably because the file isn't there),
+	returns an empty array.
+	
+	*Example:*
+	```gml
+	var arr = display_measure_all();
+	// note: use array_length_1d in old GM versions
+	for (var i = 0; i < array_length(arr); i++) {
+		var inf = arr[i];
+		show_debug_message(inf);
+		
+		show_debug_message("Name: " + inf[9]);
+		
+		show_debug_message("Location: "
+			+ string(inf[2]) + "x" + string(inf[3]) + " at "
+			+ string(inf[0]) + "," + string(inf[1])
+		);
+		
+		show_debug_message("Work area: "
+			+ string(inf[6]) + "x" + string(inf[7]) + " at "
+			+ string(inf[4]) + "," + string(inf[5])
+		);
+		
+		var _primary = (inf[8] & 1) != 0;
+		show_debug_message("Is primary: " + string(_primary));
+	}
+	```
+	For a system with a primary 1440p display
+	and a smaller 1080p one to the left of it,
+	this might show something like the following
+	```text
+	[ -1920,540,1920,1080,-1920,540,1920,1040,0,"\\.\DISPLAY1" ]
+	Name: \\.\DISPLAY1
+	Location: 1920x1080 at -1920,540
+	Work area: 1920x1040 at -1920,540
+	Is primary: 0
+	[ 0,0,2560,1440,0,0,2560,1400,1,"\\.\DISPLAY2" ]
+	Name: \\.\DISPLAY2
+	Location: 2560x1440 at 0,0
+	Work area: 2560x1400 at 0,0
+	Is primary: 1
+	```
+}
